@@ -6,7 +6,7 @@ import { MatchCard } from './components/MatchCard';
 import { BetSlip } from './components/BetSlip';
 import { BottomNav } from './components/BottomNav';
 import { BalanceChart } from './components/BalanceChart';
-import { TrendingUp, Coins, Trophy, LogOut, Loader2, PlayCircle, Receipt, Mail, Lock, User as UserIcon, AlertCircle } from 'lucide-react';
+import { TrendingUp, Coins, Trophy, LogOut, Loader2, PlayCircle, Receipt, Mail, Lock, User as UserIcon, AlertCircle, Clock } from 'lucide-react';
 import { auth, db } from './firebase';
 import { 
   createUserWithEmailAndPassword, 
@@ -51,6 +51,7 @@ export default function App() {
   const [selectedLeague, setSelectedLeague] = useState<League>(League.SERIE_A);
   const [matches, setMatches] = useState<Match[]>([]);
   const [loadingMatches, setLoadingMatches] = useState(false);
+  const [bonusCountdown, setBonusCountdown] = useState<string>('');
   
   // Betting Logic
   const [currentSlip, setCurrentSlip] = useState<BetSelection[]>([]);
@@ -80,6 +81,35 @@ export default function App() {
       setAuthLoading(false);
     });
     return () => unsubscribe();
+  }, []);
+
+  // Countdown Timer Logic
+  useEffect(() => {
+    const timer = setInterval(() => {
+        const now = new Date();
+        const nextMonday = new Date();
+        // Calculate days until next Monday (1)
+        // If today is Monday (1), next Monday is 7 days away.
+        // If today is Sunday (0), next Monday is 1 day away.
+        const daysUntilMonday = (1 + 7 - now.getDay()) % 7 || 7;
+        
+        nextMonday.setDate(now.getDate() + daysUntilMonday);
+        nextMonday.setHours(0, 0, 0, 0); // Midnight
+
+        const diff = nextMonday.getTime() - now.getTime();
+
+        if (diff <= 0) {
+            setBonusCountdown("Richiedi ora!");
+        } else {
+            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((diff % (1000 * 60)) / 1000);
+            setBonusCountdown(`${d}g ${h}h ${m}m ${s}s`);
+        }
+    }, 1000);
+
+    return () => clearInterval(timer);
   }, []);
 
   // --- 2. Data Loading (Firestore) ---
@@ -438,7 +468,7 @@ export default function App() {
             <div className="w-24 h-24 bg-brand-card rounded-3xl flex items-center justify-center mb-8 shadow-2xl shadow-brand-accent/20 mx-auto border border-slate-700">
             <TrendingUp size={48} className="text-brand-accent" />
             </div>
-            <h1 className="text-4xl font-bold mb-3 text-white">FantaBet</h1>
+            <h1 className="text-4xl font-bold mb-3 text-white">Sciacca's Bet</h1>
             <p className="text-brand-muted mb-10 text-lg">Il simulatore di scommesse n.1</p>
             
             <form onSubmit={handleAuth} className="space-y-4 text-left">
@@ -527,7 +557,7 @@ export default function App() {
            <div className="w-8 h-8 bg-brand-accent rounded-lg flex items-center justify-center shadow-lg shadow-brand-accent/20">
              <TrendingUp size={18} className="text-brand-dark" />
            </div>
-           <span className="font-bold text-lg text-white tracking-tight">FantaBet</span>
+           <span className="font-bold text-lg text-white tracking-tight">Sciacca's Bet</span>
         </div>
         <div className="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700 shadow-inner">
            <Coins size={16} className="text-yellow-400" />
@@ -654,6 +684,23 @@ export default function App() {
                  </p>
                  <p className="text-xs text-slate-500 mt-1">{currentUser.email}</p>
                </div>
+            </div>
+
+            {/* BONUS TIMER WIDGET */}
+            <div className="bg-gradient-to-r from-indigo-900 to-slate-900 rounded-xl p-4 mb-6 border border-indigo-500/30 shadow-lg relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+                <div className="relative z-10 flex items-center justify-between">
+                    <div>
+                        <p className="text-indigo-200 text-xs font-bold uppercase tracking-wider mb-1 flex items-center gap-1">
+                            <Clock size={12} /> Prossimo Bonus
+                        </p>
+                        <h3 className="text-2xl font-mono font-bold text-white">{bonusCountdown}</h3>
+                        <p className="text-[10px] text-indigo-300">Ricarica di €{WEEKLY_BONUS} ogni lunedì</p>
+                    </div>
+                    <div className="h-12 w-12 bg-indigo-500/20 rounded-full flex items-center justify-center border border-indigo-500/40">
+                        <Coins className="text-indigo-400" />
+                    </div>
+                </div>
             </div>
             
             {/* Balance Chart */}

@@ -21,7 +21,70 @@ const getAI = () => {
 // Helper to generate a unique ID
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
-// --- FALLBACK DATA GENERATOR ---
+// --- REAL LOGO MAPPING ---
+// Using reliable sources (Wikimedia Commons, etc.) for high quality PNGs where possible.
+const TEAM_LOGOS: Record<string, string> = {
+    // SERIE A
+    'Inter': 'https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg',
+    'Milan': 'https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg',
+    'Juventus': 'https://upload.wikimedia.org/wikipedia/commons/b/bc/Juventus_FC_2017_icon_%28black%29.svg',
+    'Napoli': 'https://upload.wikimedia.org/wikipedia/commons/2/2d/SSC_Napoli_2007_%281%29.png',
+    'Roma': 'https://upload.wikimedia.org/wikipedia/commons/c/ce/AS_Roma_Logo_2017.svg',
+    'Lazio': 'https://upload.wikimedia.org/wikipedia/commons/3/3b/S.S._Lazio_badge.svg',
+    'Atalanta': 'https://upload.wikimedia.org/wikipedia/en/6/66/AtalantaBC.svg',
+    'Fiorentina': 'https://upload.wikimedia.org/wikipedia/commons/7/79/ACF_Fiorentina_logo.svg',
+    'Torino': 'https://upload.wikimedia.org/wikipedia/en/2/2e/Torino_FC_Logo.svg',
+    'Bologna': 'https://upload.wikimedia.org/wikipedia/en/5/5b/Bologna_F.C._1909_logo.svg',
+    'Verona': 'https://upload.wikimedia.org/wikipedia/en/a/a2/Hellas_Verona_FC_logo_%282020%29.svg',
+    'Udinese': 'https://upload.wikimedia.org/wikipedia/en/c/ce/Udinese_Calcio_logo.svg',
+    'Sassuolo': 'https://upload.wikimedia.org/wikipedia/en/1/1c/US_Sassuolo_Calcio_logo.svg',
+    'Monza': 'https://upload.wikimedia.org/wikipedia/commons/2/29/AC_Monza_logo.svg',
+    'Genoa': 'https://upload.wikimedia.org/wikipedia/en/6/6c/Genoa_C.F.C._logo.svg',
+    'Lecce': 'https://upload.wikimedia.org/wikipedia/en/a/a8/US_Lecce_Badge.svg',
+    'Cagliari': 'https://upload.wikimedia.org/wikipedia/en/6/61/Cagliari_Calcio_1920.svg',
+
+    // PREMIER LEAGUE
+    'Man City': 'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg',
+    'Arsenal': 'https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg',
+    'Liverpool': 'https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg',
+    'Man Utd': 'https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg',
+    'Chelsea': 'https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg',
+    'Tottenham': 'https://upload.wikimedia.org/wikipedia/en/b/b4/Tottenham_Hotspur.svg',
+    'Newcastle': 'https://upload.wikimedia.org/wikipedia/en/5/56/Newcastle_United_Logo.svg',
+    'Aston Villa': 'https://upload.wikimedia.org/wikipedia/en/9/9f/Aston_Villa_logo.svg',
+
+    // LA LIGA
+    'Real Madrid': 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg',
+    'Barcelona': 'https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg',
+    'Atlético Madrid': 'https://upload.wikimedia.org/wikipedia/en/f/f4/Atletico_Madrid_2017_logo.svg',
+    'Sevilla': 'https://upload.wikimedia.org/wikipedia/en/3/3b/Sevilla_FC_logo.svg',
+    'Real Sociedad': 'https://upload.wikimedia.org/wikipedia/en/f/f1/Real_Sociedad_logo.svg',
+    'Valencia': 'https://upload.wikimedia.org/wikipedia/en/c/ce/Valenciacf.svg',
+    'Betis': 'https://upload.wikimedia.org/wikipedia/en/1/13/Real_betis_logo.svg',
+    'Villarreal': 'https://upload.wikimedia.org/wikipedia/en/7/70/Villarreal_CF_logo.svg',
+
+    // CHAMPIONS LEAGUE EXTRA
+    'Bayern Munich': 'https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg',
+    'PSG': 'https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg',
+    'Dortmund': 'https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg'
+};
+
+const getLogoForTeam = (teamName: string): string => {
+    // Try exact match
+    if (TEAM_LOGOS[teamName]) return TEAM_LOGOS[teamName];
+
+    // Try partial match or standard variations
+    const lowerName = teamName.toLowerCase();
+    const foundKey = Object.keys(TEAM_LOGOS).find(key => 
+        lowerName.includes(key.toLowerCase()) || key.toLowerCase().includes(lowerName)
+    );
+    
+    if (foundKey) return TEAM_LOGOS[foundKey];
+
+    // Fallback if not found (Generic colorful avatar)
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(teamName)}&background=random&color=fff&size=128&bold=true`;
+};
+
 const TEAMS_BY_LEAGUE: Record<string, string[]> = {
   [League.SERIE_A]: ['Inter', 'Milan', 'Juventus', 'Napoli', 'Roma', 'Lazio', 'Atalanta', 'Fiorentina', 'Torino', 'Bologna'],
   [League.PREMIER_LEAGUE]: ['Man City', 'Arsenal', 'Liverpool', 'Man Utd', 'Chelsea', 'Tottenham', 'Newcastle', 'Aston Villa'],
@@ -29,6 +92,7 @@ const TEAMS_BY_LEAGUE: Record<string, string[]> = {
   [League.CHAMPIONS_LEAGUE]: ['Man City', 'Real Madrid', 'Bayern Munich', 'PSG', 'Inter', 'Arsenal', 'Barcelona', 'Atlético Madrid']
 };
 
+// --- FALLBACK DATA GENERATOR ---
 const generateFallbackMatches = (league: League): Match[] => {
   const teams = TEAMS_BY_LEAGUE[league] || TEAMS_BY_LEAGUE[League.SERIE_A];
   // Shuffle teams
@@ -74,11 +138,11 @@ const generateFallbackMatches = (league: League): Match[] => {
       league: league,
       homeTeam: { 
         name: homeTeam, 
-        logoPlaceholder: `https://picsum.photos/seed/${homeTeam.replace(/\s/g, '')}/48/48` 
+        logoPlaceholder: getLogoForTeam(homeTeam) 
       },
       awayTeam: { 
         name: awayTeam, 
-        logoPlaceholder: `https://picsum.photos/seed/${awayTeam.replace(/\s/g, '')}/48/48` 
+        logoPlaceholder: getLogoForTeam(awayTeam) 
       },
       startTime: date.toISOString(),
       odds: {
@@ -147,11 +211,11 @@ export const fetchUpcomingMatches = async (league: League): Promise<Match[]> => 
         league: league,
         homeTeam: { 
           name: item.homeTeamName, 
-          logoPlaceholder: `https://picsum.photos/seed/${item.homeTeamName.replace(/\s/g, '')}/48/48` 
+          logoPlaceholder: getLogoForTeam(item.homeTeamName)
         },
         awayTeam: { 
           name: item.awayTeamName, 
-          logoPlaceholder: `https://picsum.photos/seed/${item.awayTeamName.replace(/\s/g, '')}/48/48` 
+          logoPlaceholder: getLogoForTeam(item.awayTeamName)
         },
         startTime: date.toISOString(),
         odds: {
