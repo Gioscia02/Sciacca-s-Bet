@@ -1,6 +1,6 @@
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { initializeApp, FirebaseApp } from "firebase/app";
+import { getAuth, Auth } from "firebase/auth";
+import { getFirestore, Firestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBnMBLwet0MJY7kieNH8cUl7Yzaoj-xzkM",
@@ -12,10 +12,10 @@ const firebaseConfig = {
   measurementId: "G-D7Z0Q9GNNM"
 };
 
-// Initialize Firebase
-let app;
-let auth;
-let db;
+// Initialize Firebase with explicit types
+let app: FirebaseApp | undefined;
+let auth: Auth | undefined;
+let db: Firestore | undefined;
 
 try {
     app = initializeApp(firebaseConfig);
