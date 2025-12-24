@@ -1,7 +1,16 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Match, League } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Helper to safely get the AI instance
+// This prevents the app from crashing at startup if the API key is missing
+const getAI = () => {
+  try {
+    return new GoogleGenAI({ apiKey: process.env.API_KEY });
+  } catch (error) {
+    console.error("Failed to initialize GoogleGenAI:", error);
+    throw error;
+  }
+};
 
 // Helper to generate a unique ID
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -17,6 +26,7 @@ export const fetchUpcomingMatches = async (league: League): Promise<Match[]> => 
   `;
 
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model,
       contents: prompt,
@@ -101,6 +111,7 @@ export const simulateMatchResult = async (match: Match): Promise<{ homeScore: nu
   `;
 
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: prompt,
