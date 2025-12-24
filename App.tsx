@@ -31,7 +31,7 @@ import {
 } from 'firebase/firestore';
 
 const STARTING_BALANCE = 1000;
-const WEEKLY_BONUS = 500;
+const WEEKLY_BONUS = 100;
 
 export default function App() {
   // --- Auth State ---
@@ -154,9 +154,22 @@ export default function App() {
 
     const lastBonus = new Date(currentUserData.weeklyBonusDate);
     const now = new Date();
-    const oneWeek = 7 * 24 * 60 * 60 * 1000;
     
-    if (now.getTime() - lastBonus.getTime() > oneWeek) {
+    // Logic: Find the most recent Monday at 00:00 relative to now
+    // If the last bonus date is OLDER than the most recent Monday, the user is eligible.
+    const getMostRecentMonday = (d: Date) => {
+        const t = new Date(d);
+        const day = t.getDay();
+        const diff = t.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday (0) to get previous monday
+        t.setDate(diff);
+        t.setHours(0, 0, 0, 0);
+        return t;
+    };
+
+    const currentMonday = getMostRecentMonday(now);
+    
+    // Check if the last bonus was collected before the start of the current week (Monday)
+    if (lastBonus.getTime() < currentMonday.getTime()) {
       const newBalance = currentUserData.balance + WEEKLY_BONUS;
       const newDate = now.toISOString();
       const newHistory = [...(currentUserData.balanceHistory || []), { date: newDate, value: newBalance }];
@@ -177,7 +190,7 @@ export default function App() {
         balanceHistory: newHistory
       });
       
-      alert(`🎉 Bonus settimanale accreditato! +€${WEEKLY_BONUS}`);
+      alert(`🎉 Buon inizio settimana! Ti sono stati accreditati €${WEEKLY_BONUS} extra.`);
     }
   };
 
