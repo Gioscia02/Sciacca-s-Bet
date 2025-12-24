@@ -22,51 +22,65 @@ const getAI = () => {
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
 // --- REAL LOGO MAPPING ---
-// Using reliable sources (Wikimedia Commons, etc.) for high quality PNGs where possible.
+// Switched to ESPN CDN for high reliability and consistent PNG format.
 const TEAM_LOGOS: Record<string, string> = {
     // SERIE A
-    'Inter': 'https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg',
-    'Milan': 'https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg',
-    'Juventus': 'https://upload.wikimedia.org/wikipedia/commons/b/bc/Juventus_FC_2017_icon_%28black%29.svg',
-    'Napoli': 'https://upload.wikimedia.org/wikipedia/commons/2/2d/SSC_Napoli_2007_%281%29.png',
-    'Roma': 'https://upload.wikimedia.org/wikipedia/commons/c/ce/AS_Roma_Logo_2017.svg',
-    'Lazio': 'https://upload.wikimedia.org/wikipedia/commons/3/3b/S.S._Lazio_badge.svg',
-    'Atalanta': 'https://upload.wikimedia.org/wikipedia/en/6/66/AtalantaBC.svg',
-    'Fiorentina': 'https://upload.wikimedia.org/wikipedia/commons/7/79/ACF_Fiorentina_logo.svg',
-    'Torino': 'https://upload.wikimedia.org/wikipedia/en/2/2e/Torino_FC_Logo.svg',
-    'Bologna': 'https://upload.wikimedia.org/wikipedia/en/5/5b/Bologna_F.C._1909_logo.svg',
-    'Verona': 'https://upload.wikimedia.org/wikipedia/en/a/a2/Hellas_Verona_FC_logo_%282020%29.svg',
-    'Udinese': 'https://upload.wikimedia.org/wikipedia/en/c/ce/Udinese_Calcio_logo.svg',
-    'Sassuolo': 'https://upload.wikimedia.org/wikipedia/en/1/1c/US_Sassuolo_Calcio_logo.svg',
-    'Monza': 'https://upload.wikimedia.org/wikipedia/commons/2/29/AC_Monza_logo.svg',
-    'Genoa': 'https://upload.wikimedia.org/wikipedia/en/6/6c/Genoa_C.F.C._logo.svg',
-    'Lecce': 'https://upload.wikimedia.org/wikipedia/en/a/a8/US_Lecce_Badge.svg',
-    'Cagliari': 'https://upload.wikimedia.org/wikipedia/en/6/61/Cagliari_Calcio_1920.svg',
+    'Inter': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/110.png',
+    'Milan': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/103.png',
+    'Juventus': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/111.png',
+    'Napoli': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/114.png',
+    'Roma': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/104.png',
+    'Lazio': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/112.png',
+    'Atalanta': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/125.png',
+    'Fiorentina': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/107.png',
+    'Torino': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/118.png',
+    'Bologna': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/116.png',
+    'Verona': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/123.png',
+    'Hellas Verona': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/123.png',
+    'Udinese': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/119.png',
+    'Sassuolo': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/3576.png',
+    'Monza': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/3653.png',
+    'Genoa': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/3263.png',
+    'Lecce': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/113.png',
+    'Cagliari': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/106.png',
+    'Empoli': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/2736.png',
+    'Salernitana': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/3429.png',
+    'Frosinone': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/3650.png',
+    'Parma': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/115.png',
+    'Como': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/2744.png',
+    'Venezia': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/206.png',
 
     // PREMIER LEAGUE
-    'Man City': 'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg',
-    'Arsenal': 'https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg',
-    'Liverpool': 'https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg',
-    'Man Utd': 'https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg',
-    'Chelsea': 'https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg',
-    'Tottenham': 'https://upload.wikimedia.org/wikipedia/en/b/b4/Tottenham_Hotspur.svg',
-    'Newcastle': 'https://upload.wikimedia.org/wikipedia/en/5/56/Newcastle_United_Logo.svg',
-    'Aston Villa': 'https://upload.wikimedia.org/wikipedia/en/9/9f/Aston_Villa_logo.svg',
+    'Man City': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/382.png',
+    'Manchester City': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/382.png',
+    'Arsenal': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/359.png',
+    'Liverpool': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/364.png',
+    'Man Utd': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/360.png',
+    'Manchester United': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/360.png',
+    'Chelsea': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/363.png',
+    'Tottenham': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/367.png',
+    'Newcastle': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/361.png',
+    'Aston Villa': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/362.png',
+    'West Ham': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/371.png',
+    'Brighton': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/331.png',
 
     // LA LIGA
-    'Real Madrid': 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg',
-    'Barcelona': 'https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg',
-    'Atlético Madrid': 'https://upload.wikimedia.org/wikipedia/en/f/f4/Atletico_Madrid_2017_logo.svg',
-    'Sevilla': 'https://upload.wikimedia.org/wikipedia/en/3/3b/Sevilla_FC_logo.svg',
-    'Real Sociedad': 'https://upload.wikimedia.org/wikipedia/en/f/f1/Real_Sociedad_logo.svg',
-    'Valencia': 'https://upload.wikimedia.org/wikipedia/en/c/ce/Valenciacf.svg',
-    'Betis': 'https://upload.wikimedia.org/wikipedia/en/1/13/Real_betis_logo.svg',
-    'Villarreal': 'https://upload.wikimedia.org/wikipedia/en/7/70/Villarreal_CF_logo.svg',
+    'Real Madrid': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/86.png',
+    'Barcelona': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/83.png',
+    'Atlético Madrid': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/1068.png',
+    'Sevilla': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/243.png',
+    'Real Sociedad': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/89.png',
+    'Valencia': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/94.png',
+    'Betis': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/244.png',
+    'Villarreal': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/102.png',
 
-    // CHAMPIONS LEAGUE EXTRA
-    'Bayern Munich': 'https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg',
-    'PSG': 'https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg',
-    'Dortmund': 'https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg'
+    // CHAMPIONS LEAGUE / EUROPE
+    'Bayern': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/132.png',
+    'Bayern Munich': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/132.png',
+    'Dortmund': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/124.png',
+    'Leverkusen': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/131.png',
+    'PSG': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/160.png',
+    'Paris Saint-Germain': 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/160.png'
 };
 
 const getLogoForTeam = (teamName: string): string => {
