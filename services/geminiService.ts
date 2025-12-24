@@ -4,9 +4,12 @@ import { Match, League } from "../types";
 // Helper to safely get the AI instance
 const getAI = () => {
   try {
-    // Check if process is defined (browser safety)
-    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
-      return new GoogleGenAI({ apiKey: process.env.API_KEY });
+    // Support both Vite standard env vars and process.env fallback
+    // @ts-ignore
+    const apiKey = import.meta.env?.VITE_API_KEY || process.env.API_KEY;
+
+    if (apiKey) {
+      return new GoogleGenAI({ apiKey: apiKey });
     }
     throw new Error("API Key not found");
   } catch (error) {
