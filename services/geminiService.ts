@@ -2,18 +2,93 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { Match, League } from "../types";
 
 // Helper to safely get the AI instance
-// This prevents the app from crashing at startup if the API key is missing
 const getAI = () => {
   try {
-    return new GoogleGenAI({ apiKey: process.env.API_KEY });
+    // Check if process is defined (browser safety)
+    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+      return new GoogleGenAI({ apiKey: process.env.API_KEY });
+    }
+    throw new Error("API Key not found");
   } catch (error) {
-    console.error("Failed to initialize GoogleGenAI:", error);
+    // We explicitly throw to trigger the fallback in the calling functions
     throw error;
   }
 };
 
 // Helper to generate a unique ID
 const generateId = () => Math.random().toString(36).substr(2, 9);
+
+// --- FALLBACK DATA GENERATOR ---
+const TEAMS_BY_LEAGUE: Record<string, string[]> = {
+  [League.SERIE_A]: ['Inter', 'Milan', 'Juventus', 'Napoli', 'Roma', 'Lazio', 'Atalanta', 'Fiorentina', 'Torino', 'Bologna'],
+  [League.PREMIER_LEAGUE]: ['Man City', 'Arsenal', 'Liverpool', 'Man Utd', 'Chelsea', 'Tottenham', 'Newcastle', 'Aston Villa'],
+  [League.LA_LIGA]: ['Real Madrid', 'Barcelona', 'Atlético Madrid', 'Sevilla', 'Real Sociedad', 'Valencia', 'Betis', 'Villarreal'],
+  [League.CHAMPIONS_LEAGUE]: ['Man City', 'Real Madrid', 'Bayern Munich', 'PSG', 'Inter', 'Arsenal', 'Barcelona', 'Atlético Madrid']
+};
+
+const generateFallbackMatches = (league: League): Match[] => {
+  const teams = TEAMS_BY_LEAGUE[league] || TEAMS_BY_LEAGUE[League.SERIE_A];
+  // Shuffle teams
+  const shuffled = [...teams].sort(() => 0.5 - Math.random());
+  const matches: Match[] = [];
+  
+  // Create pairings
+  for (let i = 0; i < Math.floor(shuffled.length / 2); i++) {
+    const homeTeam = shuffled[i * 2];
+    const awayTeam = shuffled[i * 2 + 1];
+    
+    // Generate realistic odds
+    // Random strength factor (0 to 1)
+    const homeStrength = Math.random();
+    const awayStrength = Math.random();
+    
+    let oddsHome, oddsDraw, oddsAway;
+
+    // Logic to set odds based on random strength
+    if (homeStrength > awayStrength + 0.2) {
+      // Home favorite
+      oddsHome = 1.50 + (Math.random() * 0.5);
+      oddsDraw = 3.50 + (Math.random() * 1.0);
+      oddsAway = 4.50 + (Math.random() * 2.0);
+    } else if (awayStrength > homeStrength + 0.2) {
+      // Away favorite
+      oddsHome = 3.50 + (Math.random() * 2.0);
+      oddsDraw = 3.30 + (Math.random() * 0.8);
+      oddsAway = 1.60 + (Math.random() * 0.6);
+    } else {
+      // Balanced
+      oddsHome = 2.40 + (Math.random() * 0.5);
+      oddsDraw = 3.00 + (Math.random() * 0.4);
+      oddsAway = 2.60 + (Math.random() * 0.5);
+    }
+
+    const date = new Date();
+    date.setDate(date.getDate() + Math.floor(Math.random() * 5) + 1); // Next 1-6 days
+    date.setHours(12 + Math.floor(Math.random() * 10), [0, 30][Math.floor(Math.random() * 2)], 0, 0);
+
+    matches.push({
+      id: generateId(),
+      league: league,
+      homeTeam: { 
+        name: homeTeam, 
+        logoPlaceholder: `https://picsum.photos/seed/${homeTeam.replace(/\s/g, '')}/48/48` 
+      },
+      awayTeam: { 
+        name: awayTeam, 
+        logoPlaceholder: `https://picsum.photos/seed/${awayTeam.replace(/\s/g, '')}/48/48` 
+      },
+      startTime: date.toISOString(),
+      odds: {
+        home: parseFloat(oddsHome.toFixed(2)),
+        draw: parseFloat(oddsDraw.toFixed(2)),
+        away: parseFloat(oddsAway.toFixed(2))
+      },
+      status: 'SCHEDULED'
+    });
+  }
+  return matches;
+};
+// -------------------------------
 
 export const fetchUpcomingMatches = async (league: League): Promise<Match[]> => {
   const model = "gemini-3-flash-preview";
@@ -53,6 +128,10 @@ export const fetchUpcomingMatches = async (league: League): Promise<Match[]> => 
 
     const data = JSON.parse(response.text || "[]");
     
+    if (!Array.isArray(data) || data.length === 0) {
+        throw new Error("Invalid or empty response from AI");
+    }
+
     // Transform into app format
     const matches: Match[] = data.map((item: any) => {
       const date = new Date();
@@ -84,9 +163,9 @@ export const fetchUpcomingMatches = async (league: League): Promise<Match[]> => 
     return matches;
 
   } catch (error) {
-    console.error("Error fetching matches from Gemini:", error);
-    // Fallback if AI fails
-    return [];
+    console.warn("Gemini API failed or missing key, using fallback simulation data.", error);
+    // Return simulated data so the app is always usable
+    return generateFallbackMatches(league);
   }
 };
 
