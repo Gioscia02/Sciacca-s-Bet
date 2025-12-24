@@ -14,7 +14,8 @@ import {
   onAuthStateChanged, 
   signOut,
   updateProfile,
-  User as FirebaseUser
+  User as FirebaseUser,
+  Auth
 } from 'firebase/auth';
 import { 
   doc, 
@@ -25,7 +26,8 @@ import {
   addDoc, 
   query, 
   where, 
-  getDocs
+  getDocs,
+  Firestore
 } from 'firebase/firestore';
 
 const STARTING_BALANCE = 1000;
@@ -57,11 +59,16 @@ export default function App() {
 
   // --- 1. Auth Listener ---
   useEffect(() => {
-    if (!auth) {
+    // Local reference to handle potential undefined export
+    const _auth = auth;
+    
+    if (!_auth) {
+        console.error("Firebase Auth not initialized");
         setAuthLoading(false);
         return;
     }
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+
+    const unsubscribe = onAuthStateChanged(_auth, async (user) => {
       setCurrentUser(user);
       if (user) {
         await loadUserData(user.uid);
@@ -77,9 +84,11 @@ export default function App() {
 
   // --- 2. Data Loading (Firestore) ---
   const loadUserData = async (uid: string) => {
-    if (!db) return;
+    const _db = db;
+    if (!_db) return;
+    
     try {
-      const userRef = doc(db, 'users', uid);
+      const userRef = doc(_db, 'users', uid);
       const userSnap = await getDoc(userRef);
       
       if (userSnap.exists()) {
@@ -97,12 +106,14 @@ export default function App() {
   };
 
   const loadUserBets = async (uid: string) => {
-    if (!db) return;
+    const _db = db;
+    if (!_db) return;
+
     try {
       // FIX: Removed orderBy from Firestore query to avoid need for composite index.
       // We filter by ID here and sort by date in JavaScript below.
       const q = query(
-        collection(db, 'bets'), 
+        collection(_db, 'bets'), 
         where('userId', '==', uid)
       );
       
@@ -138,6 +149,9 @@ export default function App() {
   };
 
   const checkWeeklyBonus = async (uid: string, currentUserData: AppUser) => {
+    const _db = db;
+    if (!_db) return;
+
     const lastBonus = new Date(currentUserData.weeklyBonusDate);
     const now = new Date();
     const oneWeek = 7 * 24 * 60 * 60 * 1000;
@@ -156,14 +170,12 @@ export default function App() {
       });
       
       // Update Firestore
-      if (db) {
-          const userRef = doc(db, 'users', uid);
-          await updateDoc(userRef, {
-            balance: newBalance,
-            weeklyBonusDate: newDate,
-            balanceHistory: newHistory
-          });
-      }
+      const userRef = doc(_db, 'users', uid);
+      await updateDoc(userRef, {
+        balance: newBalance,
+        weeklyBonusDate: newDate,
+        balanceHistory: newHistory
+      });
       
       alert(`🎉 Bonus settimanale accreditato! +€${WEEKLY_BONUS}`);
     }
@@ -174,15 +186,20 @@ export default function App() {
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
-    if (!auth || !db) {
-        setAuthError("Firebase non configurato. Controlla il file firebase.ts");
+    
+    // Local capture for type narrowing
+    const _auth = auth;
+    const _db = db;
+
+    if (!_auth || !_db) {
+        setAuthError("Firebase non inizializzato. Riprova più tardi.");
         return;
     }
 
     try {
       if (isRegistering) {
         // Register
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(_auth, email, password);
         const user = userCredential.user;
         
         // Update Profile Name
@@ -196,12 +213,12 @@ export default function App() {
           balanceHistory: [{ date: new Date().toISOString(), value: STARTING_BALANCE }]
         };
         
-        await setDoc(doc(db, 'users', user.uid), newUserDoc);
+        await setDoc(doc(_db, 'users', user.uid), newUserDoc);
         setUserData(newUserDoc);
         
       } else {
         // Login
-        await signInWithEmailAndPassword(auth, email, password);
+        await signInWithEmailAndPassword(_auth, email, password);
         // Data loading handled by onAuthStateChanged
       }
     } catch (err: any) {
@@ -219,8 +236,9 @@ export default function App() {
   };
 
   const handleLogout = async () => {
-    if (auth) {
-        await signOut(auth);
+    const _auth = auth;
+    if (_auth) {
+        await signOut(_auth);
         setCurrentUser(null);
         setUserData(null);
         setBets([]);
@@ -262,7 +280,8 @@ export default function App() {
   };
 
   const placeBet = async (amount: number) => {
-    if (!userData || !currentUser || !db || currentSlip.length === 0) return;
+    const _db = db;
+    if (!userData || !currentUser || !_db || currentSlip.length === 0) return;
 
     if (userData.balance < amount) {
         alert("Saldo insufficiente!");
@@ -292,12 +311,12 @@ export default function App() {
     try {
         // Firestore Transactions
         // 1. Add Bet
-        const betRef = await addDoc(collection(db, 'bets'), newBet);
+        const betRef = await addDoc(collection(_db, 'bets'), newBet);
         const betWithId = { ...newBet, id: betRef.id } as Bet;
         setBets([betWithId, ...bets]);
 
         // 2. Update Balance & History
-        const userRef = doc(db, 'users', currentUser.uid);
+        const userRef = doc(_db, 'users', currentUser.uid);
         await updateDoc(userRef, { 
             balance: newBalance,
             balanceHistory: newHistory
@@ -315,7 +334,8 @@ export default function App() {
 
   // --- 6. Simulation Logic ---
   const simulateBetResult = async (bet: Bet) => {
-    if (bet.status !== 'PENDING' || !db || !currentUser || !userData) return;
+    const _db = db;
+    if (bet.status !== 'PENDING' || !_db || !currentUser || !userData) return;
 
     let allWon = true;
     const updatedSelections = [...bet.selections];
@@ -363,7 +383,7 @@ export default function App() {
 
     try {
         // Update Bet in Firestore
-        const betRef = doc(db, 'bets', bet.id);
+        const betRef = doc(_db, 'bets', bet.id);
         await updateDoc(betRef, {
             status: newStatus,
             selections: updatedSelections // Store scores
@@ -371,7 +391,7 @@ export default function App() {
 
         // If Won, Update Balance and History
         if (allWon) {
-            const userRef = doc(db, 'users', currentUser.uid);
+            const userRef = doc(_db, 'users', currentUser.uid);
             await updateDoc(userRef, { 
                 balance: newUserBalance,
                 balanceHistory: newHistory
