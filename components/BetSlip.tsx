@@ -1,6 +1,8 @@
+
 import React, { useState } from 'react';
 import { BetSelection } from '../types';
 import { X, Check, Trash2, Trophy } from 'lucide-react';
+import { SoundService } from '../services/soundService';
 
 interface BetSlipProps {
   selections: BetSelection[];
@@ -25,6 +27,22 @@ export const BetSlip: React.FC<BetSlipProps> = ({
   const potentialWin = amount ? (parseFloat(amount) * totalOdds).toFixed(2) : '0.00';
   const isValidAmount = amount !== '' && parseFloat(amount) > 0 && parseFloat(amount) <= userBalance;
   const quickAmounts = [5, 10, 20, 50];
+
+  const handleRemove = (id: string) => {
+      SoundService.playDelete();
+      onRemoveSelection(id);
+  };
+
+  const handleQuickAmount = (val: number) => {
+      SoundService.playClick();
+      setAmount(val.toString());
+  };
+
+  const handleConfirm = () => {
+      SoundService.playConfirm();
+      onConfirm(parseFloat(amount));
+      setAmount('');
+  };
 
   return (
     <div className={`fixed inset-0 z-50 flex items-end justify-center transition-all duration-300 ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
@@ -69,7 +87,7 @@ export const BetSlip: React.FC<BetSlipProps> = ({
                             </div>
                         </div>
                         <button 
-                            onClick={() => onRemoveSelection(item.matchId)}
+                            onClick={() => handleRemove(item.matchId)}
                             className="absolute top-2 right-2 text-slate-500 hover:text-red-400 p-1"
                         >
                             <Trash2 size={16} />
@@ -102,7 +120,7 @@ export const BetSlip: React.FC<BetSlipProps> = ({
                         {quickAmounts.map(amt => (
                             <button 
                                 key={amt}
-                                onClick={() => setAmount(amt.toString())}
+                                onClick={() => handleQuickAmount(amt)}
                                 disabled={userBalance < amt}
                                 className="flex-1 py-1.5 bg-slate-800 text-xs font-semibold rounded hover:bg-slate-700 disabled:opacity-30 text-brand-muted"
                             >
@@ -119,10 +137,7 @@ export const BetSlip: React.FC<BetSlipProps> = ({
 
                 <button 
                     disabled={!isValidAmount}
-                    onClick={() => {
-                        onConfirm(parseFloat(amount));
-                        setAmount('');
-                    }}
+                    onClick={handleConfirm}
                     className="w-full py-4 bg-brand-accent text-brand-dark font-bold text-lg rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-brand-accent/20"
                 >
                     <Check size={24} />

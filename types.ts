@@ -1,3 +1,4 @@
+
 export interface Team {
   name: string;
   logoPlaceholder: string; // URL for placeholder
@@ -30,14 +31,22 @@ export interface BetSelection {
   oddsValue: number;
 }
 
+export interface MatchSimResult {
+  matchId: string;
+  homeScore: number;
+  awayScore: number;
+}
+
 export interface Bet {
   id: string;
+  userId: string;
   selections: BetSelection[];
   totalOdds: number;
   amount: number;
   potentialReturn: number;
   status: 'PENDING' | 'WON' | 'LOST';
   placedAt: string;
+  simulatedResults?: MatchSimResult[];
 }
 
 export interface BalancePoint {
@@ -50,6 +59,7 @@ export interface User {
   balance: number;
   weeklyBonusDate: string;
   balanceHistory?: BalancePoint[];
+  profilePicture?: string; // Base64 string or URL
 }
 
 export enum League {

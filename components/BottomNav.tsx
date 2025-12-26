@@ -1,5 +1,7 @@
+
 import React from 'react';
 import { Home, List, User } from 'lucide-react';
+import { SoundService } from '../services/soundService';
 
 type Tab = 'home' | 'bets' | 'profile';
 
@@ -13,7 +15,10 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, onTabChange })
     const isActive = currentTab === tab;
     return (
       <button 
-        onClick={() => onTabChange(tab)}
+        onClick={() => {
+            SoundService.playClick();
+            onTabChange(tab);
+        }}
         className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${isActive ? 'text-brand-accent' : 'text-brand-muted'}`}
       >
         <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
